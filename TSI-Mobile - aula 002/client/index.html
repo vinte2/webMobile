@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Client</title>
+    <meta name="viewport" content="
+            width=device-width, 
+            initial-scale=1.0, 
+            maximum-scale=1.0, 
+            user-scalable=no">
+    <style>
+        html,
+        body {
+            padding: 0;
+            margin: 0
+        }
+
+        video {
+            border: 1px solid red;
+            border-radius: 50%;
+            width: 10vw;
+            height: 10vw;
+        }
+
+        div.messages {
+            border: 1px solid green;
+            padding: 20px;
+            border-radius: 10px;
+            resize: horizontal;
+            overflow: auto;
+            width: auto;
+            height: 350px;
+           
+
+        }
+
+        div.input {
+            position: fixed;
+            border-radius: 10px;
+            bottom: 0
+        }
+
+        div.send {
+            background: blue;
+            border-radius: 5px;
+        }
+
+        div.received {
+            border-radius: 5px;
+            background: green
+        }
+
+        .button{
+            border-radius: 5px;
+            /*size: 15px 20px;*/
+            width: 70px;
+            height: 40px;
+        }
+
+        .textarea{
+            float: left;
+            margin-right: 20px;
+            border-radius: 5px;
+            /*padding: 10px;*/
+            width: 350px;
+            height: 40px;
+        }
+
+
+    </style>
+</head>
+
+<body>
+    <video></video>
+    <div class="messages"></div>
+    <div class="input">
+        <textarea class="textarea"></textarea>
+        <button class="button" id="sendButton">enviar</button>
+    </div>
+    <script>
+        const messages = document.querySelector('div.messages')
+        const textarea = document.querySelector('textarea')
+        const serverHost = "ws://127.0.0.1:8080"
+        const ws = new WebSocket(serverHost)
+
+        const mostraTexto = (className, text) => {
+            let div = document.createElement('div')
+            div.className = className
+            div.innerHTML = text
+            messages.appendChild(div)
+        }
+
+        const receberMsg = ev => 
+            mostraTexto('received', ev.data)
+
+        const checkKey = ev => {
+            if (ev.which === 13) {
+                ev.preventDefault()
+                enviarMsg()
+            }
+        }
+
+        const enviarMsg = () => {
+            if (textarea.value === "") return; 
+            ws.send(textarea.value)
+            mostraTexto('send', textarea.value)
+            textarea.value = ""
+        }
+
+        const conectado = ev => 
+            mostraTexto('system', "conectado ao servidor")
+        
+        const desconectado = ev => 
+            mostraTexto('system', "conexão perdida")
+
+        const erro = ev => 
+            mostraTexto('system-error', ev)
+
+        document.getElementById("sendButton").addEventListener("click", () => enviarMsg(), false);
+
+        textarea.addEventListener('keydown', checkKey)
+        ws.addEventListener('open', conectado)
+        ws.addEventListener('close', desconectado)
+        ws.addEventListener('message', receberMsg)
+        ws.addEventListener('error', erro)
+    </script>
+</body>
+
+</html>
